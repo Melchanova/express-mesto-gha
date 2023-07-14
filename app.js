@@ -1,28 +1,39 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+// const bcrypt = require('bcryptjs');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const { errors } = require('celebrate');
+const { login, createUser } = require('./controllers/users');
+const { validateLogin, validateCreateUser } = require('./middlewares/validation');
+const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/handler-error');
+const NotFoundError = require('./errors/not_found-error');
 
-const app = express();
 const { PORT = 3000 } = process.env;
 
-const { ERROR_NOT_FOUND } = require('./errors/errors');
-
+const app = express();
+app.use(helmet());
+app.use(cookieParser());
 // const router = require('./routes');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 });
+
 app.use(express.json());
 
-// временное решение авторизации
-app.use((req, res, next) => {
-  req.user = { _id: '649deea8817651a3d3638744' };
+app.use('/signin', validateLogin, login);
+app.use('/signup', validateCreateUser, createUser);
 
-  next();
-});
-
+app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use('/', (req, res) => {
-  res.status(ERROR_NOT_FOUND).send({ message: 'Страница не найдена' });
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
 });
+
+app.use(errors());
+app.use(errorHandler);
 
 app.listen(PORT);
