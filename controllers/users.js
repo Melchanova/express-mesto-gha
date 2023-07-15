@@ -24,7 +24,7 @@ const getUserById = (req, res, next) => {
         throw new NotFoundError('Пользователь не найден');
       }
 
-      res.send({ data: user });
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -42,7 +42,13 @@ const getUserInfo = (req, res, next) => {
         throw new NotFoundError('Пользователь не найден');
       }
 
-      return res.send({ data: user });
+      return res.send({
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -77,9 +83,7 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(
-          new ValidationError(
-            'Переданы некорректные данные пользователя',
-          ),
+          new ValidationError('Переданы некорректные данные пользователя'),
         );
       }
 
@@ -140,7 +144,7 @@ const changeUserAvatar = (req, res, next) => {
       if (err.name === 'ValidationError') {
         return next(
           new ValidationError(
-            'Переданы некорректные данные в метод обновления аватара пользователя',
+            'Переданы некорректные данные при обновлении аватара пользователя',
           ),
         );
       }
@@ -158,22 +162,24 @@ const login = (req, res, next) => {
         throw new AuthError('Неправильные логин или пароль');
       }
 
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          throw new AuthError('Неправильные логин или пароль');
-        }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            throw new AuthError('Неправильные логин или пароль');
+          }
 
-        const token = jwt.sign({ _id: user._id }, secretKey, {
-          expiresIn: '7d',
-        });
+          const token = jwt.sign({ _id: user._id }, secretKey, {
+            expiresIn: '7d',
+          });
 
-        res.cookie('jwt', token, {
-          httpOnly: true,
-          sameSite: true,
-          maxAge: 3600 * 24 * 7,
+          // res.cookie('jwt', token, {
+          // httpOnly: true,
+          // sameSite: true,
+          // maxAge: 3600 * 24 * 7,
+          // });
+          // return res.status(200).send(user);
+          return res.status(200).send({ token });
         });
-        return res.status(200).send(user);
-      });
     })
     .catch((err) => {
       next(err);
