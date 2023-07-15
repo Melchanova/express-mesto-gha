@@ -1,26 +1,22 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { validateLogin, validateCreateUser } = require('./middlewares/validation');
 const auth = require('./middlewares/auth');
-const errorHandler = require('./middlewares/handler-error');
 const NotFoundError = require('./errors/not_found-error');
 
 const { PORT = 3000 } = process.env;
 
 const app = express();
+
 app.use(helmet());
+app.use(express.json());
 app.use(cookieParser());
-// const router = require('./routes');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 });
-
-app.use(express.json());
 
 app.use('/signin', validateLogin, login);
 app.use('/signup', validateCreateUser, createUser);
@@ -34,6 +30,12 @@ app.use('/', (req, res, next) => {
 });
 
 app.use(errors());
-app.use(errorHandler);
+
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  const message = status === 500 ? 'На сервере произошла ошибка' : err.message;
+  res.status(status).send({ message });
+  next();
+});
 
 app.listen(PORT);

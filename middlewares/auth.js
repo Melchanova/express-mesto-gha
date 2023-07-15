@@ -2,22 +2,24 @@ const jwt = require('jsonwebtoken');
 const AuthError = require('../errors/auth-error');
 const { secretKey } = require('../utils/regex');
 
-module.exports = (req, res, next) => {
-  const token = req.cookies.jwt;
+// eslint-disable-next-line consistent-return
+const auth = (req, res, next) => {
+  if (req.cookies.jwt) {
+    const token = req.cookies.jwt;
+    let payload;
 
-  if (!token) {
-    return next(new AuthError('Необходима авторизация'));
+    try {
+      payload = jwt.verify(token, secretKey);
+    } catch (err) {
+      return next(new AuthError('Необходимо авторизоваться'));
+    }
+
+    req.user = payload;
+
+    next();
+  } else {
+    return next(new AuthError('Необходимо авторизоваться'));
   }
-
-  let payload;
-
-  try {
-    payload = jwt.verify(token, secretKey);
-  } catch (err) {
-    return next(new AuthError('Необходима авторизация'));
-  }
-
-  req.user = payload;
-
-  return next();
 };
+
+module.exports = auth;
