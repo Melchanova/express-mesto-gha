@@ -15,8 +15,8 @@ const getInitialCards = (req, res, next) => {
 };
 
 const createCard = (req, res, next) => {
-  const owner = req.user._id;
   const { name, link } = req.body;
+  const owner = req.user._id;
 
   Card.create({ name, link, owner })
     .then((card) => {
@@ -24,10 +24,9 @@ const createCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(
-          new ValidationError('Переданные данные некорректны'),
-        );
+        return next(new ValidationError('Переданы некорректные данные в метод создания карточки'));
       }
+
       return next(err);
     });
 };
@@ -35,21 +34,20 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       }
 
       if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError('Попытка удалить чужую карточку');
+        throw new ForbiddenError('Удаление чужой карточки');
       }
 
       return Card.findByIdAndRemove(cardId)
         .populate(['owner', 'likes'])
-        // eslint-disable-next-line no-shadow
-        .then((Card) => {
-          res.send({ data: Card });
+        .then((myCard) => {
+          res.send({ data: myCard });
         })
         .catch((err) => {
           next(err);
@@ -57,7 +55,7 @@ const deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new ValidationError('Переданные данные некорректны'));
+        return next(new ValidationError('Некорректный id карточки'));
       }
 
       return next(err);
@@ -65,14 +63,7 @@ const deleteCard = (req, res, next) => {
 };
 
 const putCardLike = (req, res, next) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId, // доступ к значениям  URL
-    { $addToSet: { likes: req.user._id } },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
+  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
@@ -83,7 +74,7 @@ const putCardLike = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new ValidationError('Переданные данные некорректны'));
+        return next(new ValidationError('Некорректный id карточки'));
       }
 
       return next(err);
@@ -91,14 +82,7 @@ const putCardLike = (req, res, next) => {
 };
 
 const deleteCardLike = (req, res, next) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
+  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
@@ -109,7 +93,7 @@ const deleteCardLike = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new ValidationError('Переданные данные некорректны'));
+        return next(new ValidationError('Некорректный id карточки'));
       }
 
       return next(err);

@@ -7,14 +7,14 @@ const {
 
 const {
   getUsers,
-  getUserInfo,
+  getMe,
   getUserById,
   changeUser,
   changeUserAvatar,
 } = require('../controllers/users');
 
 router.get('/', getUsers);
-router.get('/me', getUserInfo);
+router.get('/me', getMe);
 router.get('/:id', validateGetUserById, getUserById);
 router.patch('/me', validateChangeUser, changeUser);
 router.patch('/me/avatar', validateChangeUserAvatar, changeUserAvatar);
