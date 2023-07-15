@@ -3,7 +3,7 @@ const {
   validateGetUserById,
   validateChangeUser,
   validateChangeUserAvatar,
-} = require('../middlewares/validation');
+} = require('../middlewares/validation-error');
 
 const {
   getUsers,

@@ -2,7 +2,7 @@ const router = require('express').Router();
 const {
   validateCreateCard,
   validateCardId,
-} = require('../middlewares/validation');
+} = require('../middlewares/validation-error');
 
 const {
   createCard,
