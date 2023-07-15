@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
-const { validateLogin, validateCreateUser } = require('./middlewares/validation-error');
+const { validateLogin, validateCreateUser } = require('./middlewares/validation');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/not_found-error');
 
