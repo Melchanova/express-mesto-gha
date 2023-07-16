@@ -26,7 +26,6 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({
@@ -36,13 +35,17 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь не найден');
-      }
-
-      res.send(user);
+    .then((userX) => {
+      res.send({
+        name: userX.name,
+        about: userX.about,
+        avatar: userX.avatar,
+        email: userX.email,
+        // eslint-disable-next-line function-paren-newline
+      });
     })
+
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(
@@ -58,7 +61,7 @@ const createUser = (req, res, next) => {
         );
       }
 
-      return next(err);
+      next(err);
     });
 };
 

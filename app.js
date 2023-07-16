@@ -9,8 +9,6 @@ const auth = require('./middlewares/auth');
 const { ERROR_DEFAULT } = require('./errors/default-error');
 const NotFoundError = require('./errors/not_found-error');
 
-const { PORT = 3000 } = process.env;
-
 const app = express();
 app.use(express.json());
 app.use(helmet());
@@ -18,8 +16,8 @@ app.use(cookieParser());
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 });
 
-app.use('/signin', validateLogin, login);
-app.use('/signup', validateCreateUser, createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateCreateUser, createUser);
 
 // временное решение авторизации
 // app.use((req, res, next) => {
@@ -44,4 +42,6 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(PORT);
+app.listen(3000, () => {
+  console.log('Сервер подключён');
+});
