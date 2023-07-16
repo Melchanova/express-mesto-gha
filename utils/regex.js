@@ -1,5 +1,6 @@
 const secretKey = 'secret_word';
-const urlRegex = /^(http|https):\/\/(www\.)(?=.*[A-Z].*[A-Z])(?=.*[!@#$&*])(?=.*[0-9].*[0-9])(?=.*[a-z].*[a-z].*[a-z]).{8,26}$/;
+// eslint-disable-next-line no-useless-escape
+const urlRegex = /^(http|https):\/\/(www\.)?[a-zA-Z0-9\-._~:\/?#[\]@!$&'()*+,;=]{2,256}\.[a-zA-Z0-9.\/?#-]{2,}$/;
 module.exports = {
   secretKey,
   urlRegex,

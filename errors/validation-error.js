@@ -1,7 +1,9 @@
+const { ERROR_BAD_REQUEST } = require('./errors');
+
 class ValidationError extends Error {
   constructor(message) {
     super(message);
-    this.status = 400;
+    this.statusCode = ERROR_BAD_REQUEST;
   }
 }
 
