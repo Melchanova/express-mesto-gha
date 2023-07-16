@@ -41,7 +41,6 @@ const createUser = (req, res, next) => {
         about: userX.about,
         avatar: userX.avatar,
         email: userX.email,
-        // eslint-disable-next-line function-paren-newline
       });
     })
 

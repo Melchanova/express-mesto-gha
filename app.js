@@ -19,12 +19,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 });
 app.post('/signin', validateLogin, login);
 app.post('/signup', validateCreateUser, createUser);
 
-// временное решение авторизации
-// app.use((req, res, next) => {
-//   req.user = { _id: '649deea8817651a3d3638744' };
-
-//   next();
-// });
 app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
