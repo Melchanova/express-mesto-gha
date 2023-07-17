@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { secretKey } = require('../utils/regex');
 
-const AuthError = require('../errors/auth-error');
 const ConflictError = require('../errors/conflict-error');
 const ValidationError = require('../errors/validation-error');
 const NotFoundError = require('../errors/not_found-error');
@@ -48,9 +47,7 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(
-          new ValidationError(
-            'Переданы некорректные данные пользователя',
-          ),
+          new ValidationError('Переданы некорректные данные пользователя'),
         );
       }
 
@@ -90,7 +87,11 @@ const changeUser = (req, res, next) => {
   const { name, about } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    _id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -120,41 +121,20 @@ const changeUserAvatar = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
-    // eslint-disable-next-line consistent-return
+  User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return (new AuthError('Неправильные логин или пароль'));
-      }
+      const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
 
-      bcrypt.compare(password, user.password)
-        // eslint-disable-next-line consistent-return
-        .then((matched) => {
-          if (!matched) {
-            return (new AuthError('Неправильные логин или пароль'));
-          }
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
 
-          const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: '7d' });
-
-          res
-            .cookie('jwt', token, {
-              maxAge: 3600 * 24 * 7,
-              httpOnly: true,
-              sameSite: true,
-            });
-
-          res.send({
-            _id: user._id,
-            name: user.name,
-            about: user.about,
-            avatar: user.avatar,
-            email: user.email,
-          });
-        });
+        .send({ token });
     })
-    .catch((err) => {
-      next(err);
-    });
+    .catch(next);
 };
 
 module.exports = {
